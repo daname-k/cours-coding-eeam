@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cours interactif HTML + CSS + JavaScript</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="hero">
+    <h1>Company Management Software</h1>
+  </header>
+
+  <main class="container">
+
+  <form id="companyForm">
+    <div>
+      <label for="createdAt">Created At</label>
+      <input type="date" id="createdAt" required />
+    </div>
+
+    <div>
+      <label for="id">ID</label>
+      <input type="text" id="id" required />
+    </div>
+
+    <div>
+      <label for="company">Company</label>
+      <input type="text" id="company" required />
+    </div>
+
+    <div>
+      <label for="contact">Contact</label>
+      <input type="text" id="contact" required />
+    </div>
+
+<div>
+  <label for="country">Country</label>
+  <select id="country" required>
+    <option value="">-- Select a country --</option>
+  </select>
+</div>
+
+    <div>
+      <label for="revenue">Revenue (M$)</label>
+      <input type="number" id="revenue" required />
+    </div>
+
+            <div class="form-actions">
+            <button type="submit" class="btn btn-primary" id="submitButton">Add</button>
+            <button type="button" class="btn btn-secondary" id="cancelButton" disabled>Cancel</button>
+          </div>
+  </form>
+
+
+<table id="companyTable">
+  <thead>
+    <tr>
+      <th>Created At</th>
+      <th>ID</th>
+      <th>Company</th>
+      <th>Contact</th>
+      <th>Country</th>
+      <th>Revenue (in M$)</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody id="companyTableBody">
+    
+  </tbody>
+</table>
+
+  </main>
+      <script src="script.js"></script>
+</body>
