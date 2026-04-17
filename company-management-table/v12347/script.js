@@ -2,39 +2,34 @@
 // Chaque élément du tableau est un objet qui représente une entreprise.
 const companies = [
   {
-    // Date de création ou d'enregistrement de l'entreprise
-    createdAt: "2026-03-28",
-
-    // Identifiant unique de l'entreprise
     id: "001",
-
-    // Nom de l'entreprise
+    createdAt: "2026-03-28",
     company: "Alfreds Futterkiste",
-
-    // Nom de la personne de contact
     contact: "Maria Anders",
-
-    // Pays de l'entreprise
+    email: "maria@alfreds.com",
     country: "Germany",
-
-    // Revenu de l'entreprise (ici en millions)
-    revenue: 100
+    revenue: 100,
+    status: true
   },
   {
-    createdAt: "2026-03-29",
     id: "002",
+    createdAt: "2026-03-29",
     company: "Centro comercial Moctezuma",
     contact: "Francisco Chang",
+    email: "francisco@moctezuma.com",
     country: "Mexico",
-    revenue: 200
+    revenue: 200,
+    status: false
   },
   {
-    createdAt: "2026-03-30",
     id: "003",
+    createdAt: "2026-03-30",
     company: "Attijari",
     contact: "Stephane Algo",
-    country: "Cameroun",
-    revenue: 50
+    email: "stephane@attijari.com",
+    country: "Cameroon",
+    revenue: 50,
+    status: true
   }
 ];
 
@@ -52,26 +47,84 @@ let currentEditId = null;
 
 
 
-function getCompanyById(companies, companyId) {
-
+// Partie 2 : recherche d'une entreprise par son identifiant.
+function findCompanyById(id) {
   for (let i = 0; i < companies.length; i++) {
-    if (companies[i].id === companyId) {
+    if (companies[i].id === id) {
       return companies[i]
     }
   }
   return
 }
 
-
-function getCompanyIndexById(companies, companyId) {
-
+// Partie 2 : recherche d'une entreprise par son email.
+function findCompanyByEmail(email) {
   for (let i = 0; i < companies.length; i++) {
-    if (companies[i].id === companyId) {
+    if (companies[i].email === email) {
+      return companies[i]
+    }
+  }
+  return
+}
+
+// Helper interne : retrouve l'index d'une entreprise à partir de son id.
+function getCompanyIndexById(id) {
+  for (let i = 0; i < companies.length; i++) {
+    if (companies[i].id === id) {
       return i
     }
   }
   return
+}
 
+// Partie 2 : affiche toutes les entreprises dans la console.
+function displayCompanies() {
+  console.log(companies)
+}
+
+// Partie 3 : vérifie si un email existe déjà dans le tableau,
+// de manière insensible à la casse.
+function emailExists(email) {
+  const normalized = email.toLowerCase()
+  for (let i = 0; i < companies.length; i++) {
+    if (companies[i].email.toLowerCase() === normalized) {
+      return true
+    }
+  }
+  return false
+}
+
+// Partie 4 : génère le prochain identifiant à partir du dernier id du tableau.
+// Ex : "003" -> "004", "009" -> "010".
+function generateNextId() {
+  if (companies.length === 0) {
+    return "001"
+  }
+  const lastId = companies[companies.length - 1].id
+  const nextNumber = Number(lastId) + 1
+  return String(nextNumber).padStart(3, "0")
+}
+
+// Partie 2 + 3 + 4 : ajoute une nouvelle entreprise dans le tableau companies.
+// - refuse l'ajout si l'email existe déjà (Partie 3)
+// - génère automatiquement l'identifiant (Partie 4)
+function addCompany(newCompany) {
+  if (emailExists(newCompany.email)) {
+    console.error("Email déjà utilisé : " + newCompany.email)
+    return false
+  }
+  newCompany.id = generateNextId()
+  companies.push(newCompany)
+  return true
+}
+
+// Partie 2 : supprime l'entreprise correspondant à l'identifiant donné.
+function deleteCompanyById(id) {
+  const index = getCompanyIndexById(id)
+  if (index === undefined) {
+    return
+  }
+  companies.splice(index, 1)
 }
 
 
@@ -83,21 +136,25 @@ function fillFormForEdit(company) {
   document.getElementById("createdAt").value = company.createdAt;
   document.getElementById("company").value = company.company;
   document.getElementById("contact").value = company.contact;
+  document.getElementById("email").value = company.email;
   document.getElementById("country").value = company.country;
   document.getElementById("revenue").value = company.revenue;
-  document.getElementById("id").value = company.id;
+  document.getElementById("status").checked = company.status;
 
   currentEditId = company.id
 
 }
 
-// Met à jour une entreprise déjà présente dans le tableau.
-// On récupère son index grâce à son id, puis on fusionne ses anciennes
-// données avec les nouvelles via l'opérateur spread (...).
-function updateCompanyById(companies, companyId, editedCompanyData) {
-  const index = getCompanyIndexById(companies, companyId)
-
-  companies[index] = { ...companies[index], ...editedCompanyData }
+// Partie 7 : met à jour une entreprise existante.
+// Recherche l'entreprise par son id puis fusionne les anciennes données
+// avec updatedData via l'opérateur spread. Seuls les champs présents dans
+// updatedData sont modifiés, les autres restent inchangés.
+function updateCompanyById(id, updatedData) {
+  const index = getCompanyIndexById(id)
+  if (index === undefined) {
+    return
+  }
+  companies[index] = { ...companies[index], ...updatedData }
 }
 // Liste des pays qui vont alimenter la liste déroulante <select> du formulaire.
 // L'utilisateur choisira un pays parmi ces valeurs.
@@ -181,11 +238,13 @@ function renderCompanies() {
       <td>${company.id}</td>
       <td>${company.company}</td>
       <td>${company.contact}</td>
+      <td>${company.email}</td>
       <td>${company.country}</td>
       <td>${company.revenue}</td>
+      <td>${company.status ? "Active" : "Inactive"}</td>
       <td>
-      <button data-action="delete" data-index=${company.id}>Supprimer</button>
-       <button data-action="edit" data-index=${company.id}>Modifier</button>
+      <button type="button" class="btn btn-sm btn-outline-danger" data-action="delete" data-index=${company.id} title="Supprimer" aria-label="Supprimer"><i class="bi bi-trash"></i></button>
+       <button type="button" class="btn btn-sm btn-outline-orange" data-action="edit" data-index=${company.id} title="Modifier" aria-label="Modifier"><i class="bi bi-pencil"></i></button>
       </td>
     `;
 
@@ -204,24 +263,13 @@ form.addEventListener("submit", function (event) {
   // Création d'un nouvel objet entreprise à partir des valeurs saisies
   // par l'utilisateur dans les champs du formulaire.
   const newCompany = {
-    // Valeur du champ date
     createdAt: document.getElementById("createdAt").value,
-
-    // Valeur du champ identifiant
-    id: document.getElementById("id").value,
-
-    // Valeur du champ nom de l'entreprise
     company: document.getElementById("company").value,
-
-    // Valeur du champ contact
     contact: document.getElementById("contact").value,
-
-    // Valeur choisie dans la liste déroulante des pays
+    email: document.getElementById("email").value,
     country: document.getElementById("country").value,
-
-    // Valeur du revenu convertie en nombre grâce à Number()
-    // pour éviter qu'elle soit stockée comme simple texte.
-    revenue: Number(document.getElementById("revenue").value)
+    revenue: Number(document.getElementById("revenue").value),
+    status: document.getElementById("status").checked
   };
 
   // Si currentEditId est défini, on est en mode édition : on met à jour
@@ -231,13 +279,16 @@ form.addEventListener("submit", function (event) {
   //   - on remet le texte du bouton principal à "Add"
   //   - on redésactive le bouton Cancel
   if (currentEditId) {
-    updateCompanyById(companies, currentEditId, newCompany)
+    updateCompanyById(currentEditId, newCompany)
     currentEditId = null
     submitButton.textContent = "Add"
     cancelButton.disabled = true
   } else {
-    // On ajoute la nouvelle entreprise à la fin du tableau companies.
-    companies.push(newCompany);
+    const added = addCompany(newCompany)
+    if (!added) {
+      window.alert("Email déjà utilisé. Impossible d'ajouter cette entreprise.")
+      return
+    }
   }
 
   // On réaffiche le tableau pour inclure la nouvelle ligne.
@@ -284,7 +335,7 @@ tableBody.addEventListener("click", function (event) {
   //   - on laisse Cancel désactivé : il s'activera seulement quand
   //     l'utilisateur aura vraiment modifié au moins un champ.
   if (action === "edit") {
-    const company = getCompanyById(companies, index)
+    const company = findCompanyById(index)
     fillFormForEdit(company)
     submitButton.textContent = "Edit"
     cancelButton.disabled = true
@@ -292,12 +343,9 @@ tableBody.addEventListener("click", function (event) {
 
 
   if (action === "delete") {
-    // mettre la fonction delete
     const confirmed = window.confirm("Voulez-vous vraiment supprimer cette entreprise ?")
     if (confirmed) {
-      const realIndex = getCompanyIndexById(companies, index)
-      companies.splice(realIndex, 1)
-
+      deleteCompanyById(index)
       renderCompanies()
     }
 
