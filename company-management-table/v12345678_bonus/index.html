@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Company Management — Dashboard</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <div class="dashboard">
+    <aside class="sidebar">
+      <div class="brand">
+        <i class="bi bi-building"></i>
+        <span>CompanyHub</span>
+      </div>
+      <nav class="side-nav">
+        <a href="#" class="nav-item active"><i class="bi bi-grid"></i> Dashboard</a>
+        <a href="#" class="nav-item"><i class="bi bi-people"></i> Companies</a>
+        <a href="#" class="nav-item"><i class="bi bi-bar-chart"></i> Reports</a>
+        <a href="#" class="nav-item"><i class="bi bi-gear"></i> Settings</a>
+      </nav>
+    </aside>
+
+    <main class="content">
+      <header class="topbar">
+        <div>
+          <h1 class="page-title">Companies</h1>
+          <p class="page-subtitle">Manage and analyse your company portfolio.</p>
+        </div>
+        <button type="button" class="btn btn-primary" id="openFormButton">
+          <i class="bi bi-plus-lg"></i> New company
+        </button>
+      </header>
+
+      <section class="stat-grid">
+        <div class="stat-card stat-card--primary">
+          <div class="stat-card__icon"><i class="bi bi-currency-dollar"></i></div>
+          <div class="stat-card__body">
+            <div class="stat-card__label">Total revenue</div>
+            <div class="stat-card__value"><span id="statTotalRevenue">0</span> <small>M$</small></div>
+          </div>
+        </div>
+        <div class="stat-card stat-card--info">
+          <div class="stat-card__icon"><i class="bi bi-graph-up-arrow"></i></div>
+          <div class="stat-card__body">
+            <div class="stat-card__label">Average revenue</div>
+            <div class="stat-card__value"><span id="statAverageRevenue">0</span> <small>M$</small></div>
+          </div>
+        </div>
+        <div class="stat-card stat-card--success">
+          <div class="stat-card__icon"><i class="bi bi-check2-circle"></i></div>
+          <div class="stat-card__body">
+            <div class="stat-card__label">Active companies</div>
+            <div class="stat-card__value"><span id="statActiveCount">0</span></div>
+          </div>
+        </div>
+        <div class="stat-card stat-card--muted">
+          <div class="stat-card__icon"><i class="bi bi-building"></i></div>
+          <div class="stat-card__body">
+            <div class="stat-card__label">Total companies</div>
+            <div class="stat-card__value"><span id="statTotalCount">0</span></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel__header">
+          <div class="panel__title">Company list</div>
+          <div class="panel__tools">
+            <div class="search-box">
+              <i class="bi bi-search"></i>
+              <input type="text" id="searchInput" placeholder="Search by name, contact, email, country..." />
+            </div>
+            <select id="pageSizeSelect" class="form-select form-select-sm page-size" aria-label="Rows per page">
+              <option value="5">5 / page</option>
+              <option value="10" selected>10 / page</option>
+              <option value="20">20 / page</option>
+              <option value="50">50 / page</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table id="companyTable" class="table dashboard-table align-middle">
+            <thead>
+              <tr>
+                <th class="sortable" data-sort="createdAt">Created <i class="bi bi-arrow-down-up"></i></th>
+                <th>ID</th>
+                <th class="sortable" data-sort="name">Company <i class="bi bi-arrow-down-up"></i></th>
+                <th>Contact</th>
+                <th>Email</th>
+                <th>Country</th>
+                <th class="sortable text-end" data-sort="revenue">Revenue <i class="bi bi-arrow-down-up"></i></th>
+                <th>Status</th>
+                <th class="text-end">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="companyTableBody"></tbody>
+          </table>
+        </div>
+
+        <div class="panel__footer">
+          <div class="pagination-info" id="paginationInfo">0 results</div>
+          <nav class="pagination-nav" id="paginationNav" aria-label="Company pagination"></nav>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="formDrawer" class="drawer" aria-hidden="true">
+    <div class="drawer__backdrop" data-drawer-close></div>
+    <aside class="drawer__panel" role="dialog" aria-labelledby="drawerTitle">
+      <header class="drawer__header">
+        <h2 id="drawerTitle" class="h5 mb-0">New company</h2>
+        <button type="button" class="btn-close" data-drawer-close aria-label="Close"></button>
+      </header>
+      <form id="companyForm" class="drawer__body">
+        <div class="mb-3">
+          <label for="createdAt" class="form-label">Created at</label>
+          <input type="date" id="createdAt" class="form-control" required />
+        </div>
+        <div class="mb-3">
+          <label for="company" class="form-label">Company</label>
+          <input type="text" id="company" class="form-control" required />
+        </div>
+        <div class="mb-3">
+          <label for="contact" class="form-label">Contact</label>
+          <input type="text" id="contact" class="form-control" required />
+        </div>
+        <div class="mb-3">
+          <label for="email" class="form-label">Email</label>
+          <input type="email" id="email" class="form-control" required />
+        </div>
+        <div class="mb-3">
+          <label for="country" class="form-label">Country</label>
+          <select id="country" class="form-select" required>
+            <option value="">-- Select a country --</option>
+          </select>
+        </div>
+        <div class="mb-3">
+          <label for="revenue" class="form-label">Revenue (M$)</label>
+          <input type="number" id="revenue" class="form-control" required />
+        </div>
+        <div class="form-check form-switch mb-4">
+          <input class="form-check-input" type="checkbox" role="switch" id="status" />
+          <label class="form-check-label" for="status">Active company</label>
+        </div>
+        <div class="drawer__actions">
+          <button type="button" class="btn btn-outline-secondary" id="cancelButton" disabled>Cancel</button>
+          <button type="submit" class="btn btn-primary" id="submitButton">Add</button>
+        </div>
+      </form>
+    </aside>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
