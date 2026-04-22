@@ -1,0 +1,44 @@
+/* Variante Bootstrap personnalisée : bouton outline orange.
+   On reprend la mécanique des --bs-btn-* de Bootstrap 5.3 pour rester
+   cohérent avec les autres btn-outline-*. */
+.btn-outline-orange {
+  --bs-btn-color: #fd7e14;
+  --bs-btn-border-color: #fd7e14;
+  --bs-btn-hover-color: #fff;
+  --bs-btn-hover-bg: #fd7e14;
+  --bs-btn-hover-border-color: #fd7e14;
+  --bs-btn-focus-shadow-rgb: 253, 126, 20;
+  --bs-btn-active-color: #fff;
+  --bs-btn-active-bg: #fd7e14;
+  --bs-btn-active-border-color: #fd7e14;
+  --bs-btn-disabled-color: #fd7e14;
+  --bs-btn-disabled-bg: transparent;
+  --bs-btn-disabled-border-color: #fd7e14;
+  --bs-gradient: none;
+}
+
+
+
+.toolbar {
+  display: grid;
+  grid-template-columns: 2fr 1fr 160px;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.toolbar-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* Partie 6 : en-têtes cliquables pour le tri. */
+th.sortable {
+  cursor: pointer;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+th.sortable:hover {
+  background-color: #e9ecef;
+}
