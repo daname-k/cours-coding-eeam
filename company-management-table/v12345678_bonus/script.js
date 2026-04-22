@@ -453,44 +453,37 @@ function renderPagination() {
 }
 
 /* =============================================================================
-   Drawer (formulaire latéral) — ajout / édition
+   Modal Bootstrap (formulaire) — ajout / édition
 ============================================================================= */
 
-const drawer = document.getElementById("formDrawer")
-const drawerTitle = document.getElementById("drawerTitle")
+const modalElement = document.getElementById("companyModal")
+const modalTitle = document.getElementById("companyModalTitle")
 const form = document.getElementById("companyForm")
 const submitButton = document.getElementById("submitButton")
-const cancelButton = document.getElementById("cancelButton")
 const openFormButton = document.getElementById("openFormButton")
+
+// Instance Bootstrap Modal pilotée programmatiquement (show/hide).
+const companyModal = new bootstrap.Modal(modalElement)
 let currentEditId = null
 
-function openDrawer(mode) {
-  drawerTitle.textContent = mode === "edit" ? "Edit company" : "New company"
+function openModal(mode) {
+  modalTitle.textContent = mode === "edit" ? "Edit company" : "New company"
   submitButton.textContent = mode === "edit" ? "Save" : "Add"
-  drawer.classList.add("is-open")
-  drawer.setAttribute("aria-hidden", "false")
+  companyModal.show()
 }
 
-function closeDrawer() {
-  drawer.classList.remove("is-open")
-  drawer.setAttribute("aria-hidden", "true")
+// Lorsque Bootstrap ferme la modale (clic backdrop, bouton Cancel, croix, Esc),
+// on remet l'état à zéro pour que l'ouverture suivante reparte en mode "ajout".
+modalElement.addEventListener("hidden.bs.modal", function () {
   currentEditId = null
-  cancelButton.disabled = true
   form.reset()
-}
+});
 
 openFormButton.addEventListener("click", () => {
   form.reset()
   currentEditId = null
-  cancelButton.disabled = true
-  openDrawer("add")
+  openModal("add")
 });
-
-drawer.querySelectorAll("[data-drawer-close]").forEach((el) => {
-  el.addEventListener("click", closeDrawer)
-});
-
-cancelButton.addEventListener("click", closeDrawer);
 
 function fillFormForEdit(company) {
   document.getElementById("createdAt").value = company.createdAt
@@ -528,17 +521,9 @@ form.addEventListener("submit", function (event) {
     }
   }
 
-  closeDrawer()
+  companyModal.hide()
   refreshView()
 });
-
-function enableCancel() {
-  if (currentEditId) {
-    cancelButton.disabled = false
-  }
-}
-form.addEventListener("input", enableCancel);
-form.addEventListener("change", enableCancel);
 
 /* =============================================================================
    Interactions du tableau : édition + suppression
@@ -558,7 +543,7 @@ tableBody.addEventListener("click", function (event) {
       return
     }
     fillFormForEdit(company)
-    openDrawer("edit")
+    openModal("edit")
   }
 
   if (action === "delete") {
@@ -604,6 +589,18 @@ document.querySelectorAll("th.sortable").forEach((th) => {
     }
     refreshView()
   })
+});
+
+/* =============================================================================
+   Sidebar collapsible
+============================================================================= */
+
+const dashboard = document.getElementById("dashboard")
+const sidebarToggle = document.getElementById("sidebarToggle")
+
+sidebarToggle.addEventListener("click", function () {
+  const collapsed = dashboard.classList.toggle("is-collapsed")
+  sidebarToggle.setAttribute("aria-expanded", String(!collapsed))
 });
 
 /* =============================================================================

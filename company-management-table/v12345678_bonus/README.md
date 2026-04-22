@@ -11,7 +11,8 @@ plus une refonte *dashboard-like* de l'interface et la pagination du tableau.
 - Quatre *stat cards* colorées en haut de page : Total revenue, Average revenue, Active companies, Total companies (nouvelle métrique).
 - Tableau placé dans un *panel* avec header (recherche + sélecteur de taille de page) et footer (info de pagination + navigation).
 - Palette personnalisée définie via des variables CSS (`:root`), polices et ombrages revus, plus de dépendance au style Bootstrap par défaut pour les cartes.
-- Formulaire déplacé dans un *drawer* latéral qui s'ouvre depuis le bouton *New company* ou le bouton *Modifier* d'une ligne.
+- Formulaire déplacé dans une **modale Bootstrap** qui s'ouvre depuis le bouton *New company* ou le bouton *Modifier* d'une ligne. Pilotée programmatiquement via `bootstrap.Modal`, remise à zéro à chaque fermeture (`hidden.bs.modal`).
+- Sidebar **repliable** via un bouton dédié dans la topbar (`#sidebarToggle`) : les libellés disparaissent, la colonne passe de 240px à 72px. Sur petit écran la sidebar est repliée par défaut.
 - Statut affiché sous forme de pastille colorée (pill) : vert `On` ou rouge `Off`.
 
 ### Statut booléen
