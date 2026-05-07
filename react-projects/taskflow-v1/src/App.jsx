@@ -13,10 +13,32 @@ import "./App.css";
   la version de départ au moment du reset.
 */
 const initialTasks = [
-  { id: 1, title: "Réviser JSX", done: false },
-  { id: 2, title: "Comprendre les props", done: true },
-  { id: 3, title: "Créer des composants", done: false },
+  {
+    id: 1,
+    title: "Réviser JSX",
+    description: "Revoir la syntaxe JSX, l'utilisation des accolades pour les expressions JS, et les attributs comme className et htmlFor.",
+    status: "pending",
+    priority: "High",
+    category: "React"
+  },
+  {
+    id: 2,
+    title: "Comprendre les props",
+    description: "Apprendre à passer des données d'un composant parent à un composant enfant (read-only).",
+    status: "done",
+    priority: "Medium",
+    category: "React"
+  },
+  {
+    id: 3,
+    title: "Créer des composants",
+    description: "Mettre en pratique les composants fonctionnels et l'utilisation de hooks de base comme useState.",
+    status: "pending",
+    priority: "Low",
+    category: "React"
+  },
 ];
+
 
 function Header() {
   return (
@@ -42,52 +64,92 @@ function WelcomeCard({ studentName, courseName }) {
   );
 }
 
-/*
-  Statistiques simples.
-  Ce composant reçoit les valeurs déjà calculées par le parent.
-*/
-function TaskStats({ total, completed }) {
+
+
+function SelectedTaskPanel({ selectedTask }) {
   return (
     <section className="card">
-      <h2>Statistiques</h2>
-      <p>Total des tâches : {total}</p>
-      <p>Tâches terminées : {completed}</p>
-      <p>Tâches restantes : {total - completed}</p>
+      <h2>Détail de la tâche</h2>
+      {selectedTask ? (
+        <div className="details-box">
+          <p><strong>Titre :</strong> {selectedTask.title}</p>
+          <p><strong>Statut :</strong> {selectedTask.status === "done" ? "Terminée" : "En cours"}</p>
+          <p><strong>Priorité :</strong> {selectedTask.priority}</p>
+          <p><strong>Catégorie :</strong> {selectedTask.category}</p>
+          <p>{selectedTask.description}</p>
+        </div>
+      ) : <p>Sélectionne une tâche pour voir ses détails.</p>}
     </section>
   );
 }
+
+function TaskStats({ statsSummary }) {
+  return (
+    <section className="card stats-grid">
+      <div className="stat-box"><p className="stat-label">Total</p><h3>{statsSummary.total}</h3></div>
+      <div className="stat-box"><p className="stat-label">Terminées</p><h3>{statsSummary.total_done}</h3></div>
+      <div className="stat-box"><p className="stat-label">En cours</p><h3>{statsSummary.total_pending}</h3></div>
+      <div className="stat-box"><p className="stat-label">Priorité haute</p><h3>{statsSummary.total_highPriority}</h3></div>
+    </section>
+  );
+}
+
+
+
+function PriorityBadge({ priority }) {
+  let className = "neutral";
+  if (priority === "High") className = "danger";
+  if (priority === "Medium") className = "warning";
+  if (priority === "Low") className = "info";
+  return <Badge text={priority} type={className} />;
+}
+
+
+
+function Badge({ text, type }) {
+  return <span className={`badge ${type}`}>{text}</span>;
+}
+
 
 /*
   Une tâche unitaire.
   Quand on clique sur le bouton, on appelle la fonction reçue via props.
 */
-function TaskItem({ task, onToggle }) {
+function TaskItem({ task, onToggle, onSelect }) {
   return (
     <li className="task-item">
       <div>
-        <span className={task.done ? "done" : "not-done"}>{task.title}</span>
+        <span className={task.status === "done" ? "done" : "not-done"}>{task.title}</span>
       </div>
 
       <div className="task-actions">
-        <span className={task.done ? "badge success" : "badge pending"}>
-          {task.done ? "Terminée" : "En cours"}
+        <span className={task.status === "done" ? "badge success" : "badge pending"}>
+          {task.status === "done" ? "Terminée" : "En cours"}
         </span>
 
+        <PriorityBadge priority={task.priority} />
+        <Badge text={task.category} type="dark" />
+
+
         <button className="action-btn" onClick={() => onToggle(task.id)}>
-          {task.done ? "Annuler" : "Terminer"}
+          {task.status === "done" ? "Annuler" : "Terminer"}
         </button>
+        <button className="secondary-btn" onClick={() => onSelect(task.id)}>
+          Voir détail
+        </button>
+
       </div>
     </li>
   );
 }
 
-function TaskList({ tasks, onToggle }) {
+function TaskList({ tasks, onToggle, onSelect }) {
   return (
     <section className="card">
       <h2>Liste des tâches</h2>
       <ul className="task-list">
         {tasks.map((task) => (
-          <TaskItem key={task.id} task={task} onToggle={onToggle} />
+          <TaskItem key={task.id} task={task} onToggle={onToggle} onSelect={onSelect} />
         ))}
       </ul>
     </section>
@@ -109,17 +171,34 @@ function App() {
     setTasks permet de modifier cet état.
   */
   const [tasks, setTasks] = useState(initialTasks);
+  const [selectedTask, setSelectedTask] = useState(null)
+  const [statsSummary, setStatsSummary] = useState({total: 0, total_done: 0, total_highPriority: 0, total_pending: 0})
+
+  function handleToggleTask(taskId) {
+    const updatedTasks = tasks.map((task) => task.id === taskId ? { ...task, status: task.status === 'pending' ? 'done' : 'pending' } : task)
+    setTasks(updatedTasks)
+    if (selectedTask && selectedTask.id === taskId) {
+      const task = updatedTasks.find((task) => task.id === taskId)
+      setSelectedTask(task)
+    }
+  }
+
+
+  function handleSelectTask(taskId) {
+    const task = tasks.find((task) => task.id === taskId)
+    setSelectedTask(task)
+  }
 
   return (
     <main className="container">
       <Header />
-
       <WelcomeCard
         studentName="Daname"
         courseName="Frontend moderne avec React.js"
       />
-
-      <TaskList tasks={tasks} onToggle={true} />
+      <TaskStats statsSummary={statsSummary}/>
+      <TaskList tasks={tasks} onToggle={handleToggleTask} onSelect={handleSelectTask} />
+      <SelectedTaskPanel selectedTask={selectedTask} />
 
       <Footer />
     </main>
