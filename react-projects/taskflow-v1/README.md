@@ -1,13 +1,14 @@
 # TaskFlow v1 (en cours)
 
-Deuxième étape du projet : on introduit le **state local** avec `useState`. Le
-cours n'est pas terminé sur cette version — les **événements** et les
-**modifications du state** seront vus dans la suite. Ce snapshot reflète l'état
-de l'application au point où nous nous sommes arrêtés.
+Deuxième étape du projet : on introduit le **state local** avec `useState`,
+puis on **branche** un premier événement (`onClick`) et on fait **descendre
+des fonctions via les props** pour que les enfants demandent au parent de
+modifier le state. Ce snapshot reflète l'état de l'application après
+l'ajout du **changement de statut** et du **panneau de détail**.
 
-> ⚠️ Le bouton **Terminer / Annuler** est déjà visible sur chaque tâche, mais
-> il n'est **pas encore branché**. Cliquer dessus déclenche une erreur en
-> console : c'est normal, c'est le point de départ de la prochaine séance.
+> ⚠️ Le composant `TaskStats` est affiché mais **alimenté par un state vide**
+> (`statsSummary` initialisé à zéro). Le calcul dérivé du state `tasks` (via
+> `filter`/`reduce`) sera vu juste après — c'est le prochain palier.
 
 ## Mini résumé de cours
 
@@ -54,15 +55,28 @@ const [tasks, setTasks] = useState(initialTasks);
 
 On le **déstructure** systématiquement :
 - `tasks` : la valeur courante du state à ce rendu ;
-- `setTasks` : la fonction pour le **modifier** (on l'utilisera plus tard).
+- `setTasks` : la fonction pour le **modifier**.
 
 À chaque appel à `setTasks(...)`, React :
 1. mémorise la nouvelle valeur,
 2. **ré-exécute la fonction `App`**,
 3. récupère le nouveau JSX et met à jour le DOM.
 
-> Pour l'instant, dans ce snapshot, on a juste **lu** `tasks`. On déclenchera
-> les mises à jour quand on branchera les boutons.
+Dans cette version, `App` détient **trois** states :
+
+```jsx
+const [tasks, setTasks] = useState(initialTasks);
+const [selectedTask, setSelectedTask] = useState(null);
+const [statsSummary, setStatsSummary] = useState({
+  total: 0, total_done: 0, total_highPriority: 0, total_pending: 0
+});
+```
+
+- `tasks` : la liste des tâches, modifiée quand on bascule un statut ;
+- `selectedTask` : la tâche affichée dans le panneau de détail (`null` tant
+  que l'utilisateur n'a rien sélectionné) ;
+- `statsSummary` : agrégat affiché par `TaskStats`. Pour l'instant, il reste
+  figé à zéro — on le calculera à partir de `tasks` dans la suite.
 
 ### 5. Pourquoi extraire `initialTasks` hors du composant ?
 
@@ -88,34 +102,97 @@ Deux raisons pédagogiques :
 |---|---|---|
 | `Header` | Titre et baseline | inchangé depuis v0 |
 | `WelcomeCard` | Message d'accueil personnalisé via props | inchangé |
-| `TaskList` | Itère sur `tasks` et rend un `TaskItem` | inchangé |
-| `TaskItem` | Affichage d'une tâche **+ bouton Terminer / Annuler** | bouton non câblé |
+| `TaskStats` | Affiche les compteurs (total, terminées, en cours, priorité haute) | branché, mais alimenté par un state vide |
+| `TaskList` | Itère sur `tasks` et rend un `TaskItem` | passe `onToggle` et `onSelect` aux enfants |
+| `TaskItem` | Affiche une tâche + boutons **Terminer/Annuler** et **Voir détail** | les deux boutons sont câblés |
+| `Badge` / `PriorityBadge` | Petites pastilles réutilisables (statut, priorité, catégorie) | nouveaux, illustrent la composition |
+| `SelectedTaskPanel` | Détail de la tâche sélectionnée, ou message d'invitation si `null` | nouveau, rendu conditionnel |
 | `Footer` | Pied de page | inchangé |
-| `App` | Compose le tout, **détient le state `tasks`** | nouveau : `useState` |
+| `App` | Compose le tout, **détient les states et les handlers** | possède `useState` × 3 |
 
-> Les composants `TaskStats` et `ActionsPanel` (statistiques, bouton de reset)
-> seront introduits plus tard, en même temps que les actions qui leur donnent
-> du sens.
+> Le composant `ActionsPanel` (bouton de réinitialisation global) sera
+> introduit plus tard.
 
-### 7. Anatomie de `TaskItem` en v1
-La structure visuelle évolue légèrement par rapport à v0 : on prépare la place
-pour le bouton qu'on branchera ensuite.
+### 7. Brancher un événement : `onClick` + handler descendu via les props
+
+Le pattern central de la v1 :
 
 ```jsx
-function TaskItem({ task, onToggle }) {
+// dans App
+function handleToggleTask(taskId) {
+  const updatedTasks = tasks.map((task) =>
+    task.id === taskId
+      ? { ...task, status: task.status === "pending" ? "done" : "pending" }
+      : task
+  );
+  setTasks(updatedTasks);
+  if (selectedTask && selectedTask.id === taskId) {
+    setSelectedTask(updatedTasks.find((t) => t.id === taskId));
+  }
+}
+
+<TaskList tasks={tasks} onToggle={handleToggleTask} onSelect={handleSelectTask} />
+```
+
+```jsx
+// dans TaskItem
+<button className="action-btn" onClick={() => onToggle(task.id)}>
+  {task.status === "done" ? "Annuler" : "Terminer"}
+</button>
+```
+
+Points à retenir :
+- `onClick={() => onToggle(task.id)}` → on passe une **fonction** à `onClick`,
+  pas le résultat d'un appel. Si on écrivait `onClick={onToggle(task.id)}`,
+  React appellerait la fonction **pendant le rendu**.
+- Les enfants ne modifient **jamais** le state directement : ils appellent une
+  fonction reçue via les props. C'est le **flux unidirectionnel** : la donnée
+  descend, les événements remontent.
+- `setTasks(updatedTasks)` reçoit un **nouveau tableau**. On ne mute pas
+  `tasks` en place — `.map()` renvoie une nouvelle référence, ce qui permet à
+  React de détecter le changement.
+- Le bloc `if (selectedTask && selectedTask.id === taskId)` resynchronise la
+  tâche affichée dans le panneau de détail après un changement de statut,
+  pour que les deux states restent cohérents.
+
+### 8. Immutabilité : la règle d'or
+On retrouve le même principe dans `handleToggleTask` :
+
+- **`.map()`** crée un nouveau tableau (on ne touche pas à l'ancien) ;
+- **`{ ...task, status: ... }`** crée un nouvel objet pour la tâche modifiée
+  (les autres tâches gardent leur référence d'origine).
+
+C'est la condition pour que React déclenche un nouveau rendu et reste
+performant.
+
+### 9. Anatomie de `TaskItem` en v1
+La structure visuelle évolue par rapport à v0 : deux boutons, et trois
+badges (statut, priorité, catégorie) qui réutilisent le même composant
+`Badge` via `PriorityBadge` et un usage direct.
+
+```jsx
+function TaskItem({ task, onToggle, onSelect }) {
   return (
     <li className="task-item">
       <div>
-        <span className={task.done ? "done" : "not-done"}>{task.title}</span>
+        <span className={task.status === "done" ? "done" : "not-done"}>
+          {task.title}
+        </span>
       </div>
 
       <div className="task-actions">
-        <span className={task.done ? "badge success" : "badge pending"}>
-          {task.done ? "Terminée" : "En cours"}
+        <span className={task.status === "done" ? "badge success" : "badge pending"}>
+          {task.status === "done" ? "Terminée" : "En cours"}
         </span>
 
+        <PriorityBadge priority={task.priority} />
+        <Badge text={task.category} type="dark" />
+
         <button className="action-btn" onClick={() => onToggle(task.id)}>
-          {task.done ? "Annuler" : "Terminer"}
+          {task.status === "done" ? "Annuler" : "Terminer"}
+        </button>
+        <button className="secondary-btn" onClick={() => onSelect(task.id)}>
+          Voir détail
         </button>
       </div>
     </li>
@@ -123,24 +200,18 @@ function TaskItem({ task, onToggle }) {
 }
 ```
 
-Points à retenir :
-- `TaskItem` reçoit désormais **deux props** : `task` (la donnée) et
-  `onToggle` (la **fonction** à appeler au clic).
-- `onClick={() => onToggle(task.id)}` → on passe une **fonction** à `onClick`,
-  pas le résultat d'un appel. C'est le pattern qu'on étudiera quand on verra
-  les événements.
-- La donnée descend du parent (`tasks` dans `App`) vers les enfants via les
-  props : c'est le **flux unidirectionnel** typique de React.
+À noter : la donnée d'une tâche s'est **enrichie** depuis la v0 — chaque
+tâche porte maintenant `description`, `priority` et `category`, exploitées
+par les badges et par le panneau de détail. Le champ `done: true/false` a
+laissé place à `status: "pending" | "done"` (plus extensible).
 
-### 8. Ce qui n'est PAS encore branché
+### 10. Ce qui n'est PAS encore branché
 Volontairement laissé pour la suite du cours :
-- le **handler `handleToggle`** dans `App` qui modifiera `tasks` via
-  `setTasks` (immutabilité, `.map()` qui renvoie un nouveau tableau...) ;
-- les statistiques dérivées du state (`tasks.filter(...).length`) et le
-  composant `TaskStats` ;
+- le **calcul** de `statsSummary` à partir de `tasks` (via `filter`/`reduce`
+  ou plus simplement directement dans le rendu sans state dédié) ;
 - le bouton **Réinitialiser** et le composant `ActionsPanel` ;
-- la règle d'or de React : **ne jamais muter** le tableau ou l'objet en place,
-  toujours en produire une nouvelle version.
+- la discussion sur le « state dérivé » : faut-il vraiment un `useState`
+  pour `statsSummary` ou peut-on le recalculer à chaque rendu ?
 
 ## Lancer cette version
 
@@ -153,5 +224,5 @@ npm run dev
 
 - `index.html` : page hôte avec `<div id="root">`
 - `src/main.jsx` : point d'entrée, monte `<App />` dans le DOM
-- `src/App.jsx` : tous les composants de la v1 + le `useState` de `App`
-- `src/App.css` : styles (nouveaux : `.task-actions`, `.action-btn`, `.reset-btn`)
+- `src/App.jsx` : tous les composants de la v1 + les `useState` et handlers de `App`
+- `src/App.css` : styles (`.task-actions`, `.action-btn`, `.secondary-btn`, `.stats-grid`, badges...)
