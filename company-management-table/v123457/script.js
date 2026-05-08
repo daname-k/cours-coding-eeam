@@ -174,6 +174,33 @@ function searchCompanies(keyword) {
   })
 }
 
+
+// ## Partie 6 : tri des entreprises
+
+// Créer les fonctions suivantes :
+
+// 1. `sortByName()`
+
+//    * Trie les entreprises par ordre alphabétique sur le nom de l’entreprise
+function sortByName(){
+  return companies.sort((a, b) => a.company.localeCompare(b.company))
+}
+// 2. `sortByRevenueAsc()`
+
+//    * Trie les entreprises par revenu croissant
+
+// 3. `sortByRevenueDesc()`
+
+//    * Trie les entreprises par revenu décroissant
+
+// 4. `sortByCreatedAt()`
+
+//    * Trie les entreprises par date de création
+
+
+
+
+
 // Partie 7 : met à jour une entreprise existante.
 // Recherche l'entreprise par son id puis fusionne les anciennes données
 // avec updatedData via l'opérateur spread. Seuls les champs présents dans

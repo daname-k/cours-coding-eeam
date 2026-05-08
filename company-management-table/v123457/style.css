@@ -31,3 +31,15 @@
   flex-direction: column;
   gap: 6px;
 }
+
+
+th.sortable {
+  cursor: pointer;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+th.sortable:hover {
+  background-color: #e9ecef;
+
+}
