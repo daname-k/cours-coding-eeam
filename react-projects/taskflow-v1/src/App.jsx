@@ -83,15 +83,49 @@ function SelectedTaskPanel({ selectedTask }) {
   );
 }
 
-function TaskStats({ statsSummary }) {
+function TaskStats({tasks}) {
+  const total = tasks.length 
+  const totalDone = tasks.filter(t => t.status ==="done").length
+  const totalHighPriority = tasks.filter(t => t.priority === "High").length
+  const totalPending = total - totalDone
   return (
     <section className="card stats-grid">
-      <div className="stat-box"><p className="stat-label">Total</p><h3>{statsSummary.total}</h3></div>
-      <div className="stat-box"><p className="stat-label">Terminées</p><h3>{statsSummary.total_done}</h3></div>
-      <div className="stat-box"><p className="stat-label">En cours</p><h3>{statsSummary.total_pending}</h3></div>
-      <div className="stat-box"><p className="stat-label">Priorité haute</p><h3>{statsSummary.total_highPriority}</h3></div>
+      <div className="stat-box"><p className="stat-label">Total</p><h3>{total}</h3></div>
+      <div className="stat-box"><p className="stat-label">Terminées</p><h3>{totalDone}</h3></div>
+      <div className="stat-box"><p className="stat-label">En cours</p><h3>{totalPending}</h3></div>
+      <div className="stat-box"><p className="stat-label">Priorité haute</p><h3>{totalHighPriority}</h3></div>
     </section>
   );
+}
+
+
+function TaskForm({onAdd}){
+
+  const [title, setTitle] = useState("")
+
+  function handleSubmit(e){
+    e.preventDefault()
+    let formatedTitle = title.trim()
+    if(!formatedTitle) return
+
+    onAdd({title: formatedTitle})
+    
+  }
+
+  return (
+    <form  className="card" onSubmit={handleSubmit}>
+      <h2> Nouvelle tâche</h2>
+
+      <input 
+      value={title}
+      onChange={(e) => setTitle(e.target.value)}
+      placeholder="Titre de la tâche"/>
+      <button type="submit">Ajouter</button>
+
+    </form>
+  )
+
+
 }
 
 
@@ -156,6 +190,18 @@ function TaskList({ tasks, onToggle, onSelect }) {
   );
 }
 
+
+function ActionsPanel({ onReset }) {
+  return (
+    <section className="card">
+      <h2>Actions</h2>
+      <button className="reset-btn" onClick={onReset}>
+        Réinitialiser les tâches
+      </button>
+    </section>
+  );
+}
+
 function Footer() {
   return (
     <footer className="footer">
@@ -172,7 +218,7 @@ function App() {
   */
   const [tasks, setTasks] = useState(initialTasks);
   const [selectedTask, setSelectedTask] = useState(null)
-  const [statsSummary, setStatsSummary] = useState({total: 0, total_done: 0, total_highPriority: 0, total_pending: 0})
+
 
   function handleToggleTask(taskId) {
     const updatedTasks = tasks.map((task) => task.id === taskId ? { ...task, status: task.status === 'pending' ? 'done' : 'pending' } : task)
@@ -189,6 +235,28 @@ function App() {
     setSelectedTask(task)
   }
 
+  function handleResetTasks(){
+    setTasks(initialTasks)
+    setSelectedTask(null)
+
+  }
+
+
+  function handleAddTask({title}){
+    const newTask = {
+      id: Math.max(0, ...tasks.map(t=> t.id)) + 1,
+      title,
+      description: "",
+      status: "pending",
+      priority: "High",
+      category: "React"
+    }
+
+    setTasks([...tasks, newTask])
+
+
+  }
+
   return (
     <main className="container">
       <Header />
@@ -196,10 +264,11 @@ function App() {
         studentName="Daname"
         courseName="Frontend moderne avec React.js"
       />
-      <TaskStats statsSummary={statsSummary}/>
+      <TaskStats tasks={tasks}/>
+      <TaskForm onAdd={handleAddTask}/>
       <TaskList tasks={tasks} onToggle={handleToggleTask} onSelect={handleSelectTask} />
       <SelectedTaskPanel selectedTask={selectedTask} />
-
+      <ActionsPanel onReset={handleResetTasks}/>
       <Footer />
     </main>
   );

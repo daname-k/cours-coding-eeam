@@ -129,6 +129,58 @@ body {
 .dark { background: #e5e7eb; color: #111827; }
 .neutral { background: #f3f4f6; color: #374151; }
 
+form.card {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+form.card h2 {
+  flex-basis: 100%;
+  margin: 0 0 4px;
+}
+
+form.card input,
+form.card select {
+  flex: 1 1 200px;
+  padding: 10px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  font-size: 14px;
+  font-family: inherit;
+  background: white;
+}
+
+form.card input:focus,
+form.card select:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+form.card button[type="submit"] {
+  border: none;
+  border-radius: 10px;
+  padding: 10px 16px;
+  cursor: pointer;
+  font-weight: bold;
+  background: #2563eb;
+  color: white;
+}
+
+.details-box {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 12px 16px;
+  margin-top: 12px;
+}
+
+.details-box p {
+  margin: 6px 0;
+}
+
 .footer {
   text-align: center;
   color: #6b7280;
